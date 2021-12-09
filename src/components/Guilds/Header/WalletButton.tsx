@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import { isDesktop } from 'react-device-detect';
 import styled from 'styled-components';
-import WalletModal from 'components/WalletModal';
+import AccountModal from '../AccountModal';
 import { getChains, injected } from 'provider/connectors';
 import { useEffect, useMemo, useState } from 'react';
 import { useRpcUrls } from 'provider/providerHooks';
@@ -68,8 +68,8 @@ const Web3Status = observer(() => {
     });
   }, []);
 
-  const toggleWalletModal = () => {
-    modalStore.toggleWalletModal();
+  const toggleAccountModal = () => {
+    modalStore.toggleAccountModal();
   };
 
   const switchNetwork = async chain => {
@@ -108,7 +108,7 @@ const Web3Status = observer(() => {
       );
     } else if (account) {
       return (
-        <AccountButton onClick={toggleWalletModal} iconLeft>
+        <AccountButton onClick={toggleAccountModal} iconLeft>
           <IconHolder>
             <Avatar src={imageUrlToUse} defaultSeed={account} size={24} />
           </IconHolder>
@@ -118,14 +118,15 @@ const Web3Status = observer(() => {
         </AccountButton>
       );
     } else {
-      return <Button onClick={toggleWalletModal}>Connect Wallet</Button>;
+      return <Button onClick={toggleAccountModal}>Connect Wallet</Button>;
     }
   }
 
   return (
     <>
       {getWalletStatus()}
-      <WalletModal />
+      {/* <WalletModal /> */}
+      <AccountModal />
     </>
   );
 });
