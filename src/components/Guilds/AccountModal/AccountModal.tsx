@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { isMobile } from 'react-device-detect';
 import { observer } from 'mobx-react';
+import { FaArrowLeft } from 'react-icons/fa';
 
 import Modal from '../common/Modal';
 import AccountDetails from '../common/AccountDetails';
-import Option from '../../WalletModal/Option';
+import WalletProviderButton from '../WalletProviderButton'; 
 import { usePrevious } from 'utils';
-import Link from '../../../components/common/Link';
+// import Link from '../../../components/common/Link';
 import { injected, getWallets } from 'provider/connectors';
 import { useContext } from '../../../contexts';
 import { isChainIdSupported } from '../../../provider/connectors';
@@ -61,25 +62,7 @@ const UpperSection = styled.div`
   }
 `;
 
-const Blurb = styled.div`
-  ${({ theme }) => theme.flexRowWrap}
-  align-items: center;
-  justify-content: center;
-  margin-top: 2rem;
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    margin: 1rem;
-    font-size: 12px;
-  `};
-`;
-
 const OptionGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-gap: 10px;
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    grid-template-columns: 1fr;
-    grid-gap: 10px;
-  `};
 `;
 
 const HoverText = styled.div`
@@ -93,6 +76,7 @@ const WALLET_VIEWS = {
   OPTIONS_SECONDARY: 'options_secondary',
   ACCOUNT: 'account',
   PENDING: 'pending',
+  ERROR: 'error',
 };
 
 const AccountModal = observer(() => {
@@ -104,7 +88,6 @@ const AccountModal = observer(() => {
   const rpcUrls = useRpcUrls();
   const [walletView, setWalletView] = useState(WALLET_VIEWS.ACCOUNT);
   const [connectionErrorMessage, setConnectionErrorMessage] = useState(false);
-
   const walletModalOpen = modalStore.accountModalVisible;
 
   const toggleAccountModal = () => {
@@ -144,10 +127,23 @@ const AccountModal = observer(() => {
   const tryActivation = async connector => {
     setWalletView(WALLET_VIEWS.PENDING);
     activate(connector, undefined, true).catch(e => {
-      setConnectionErrorMessage(e);
+      setConnectionErrorMessage(e); 
       console.debug('[Activation Error]', e);
+      setWalletView(WALLET_VIEWS.ERROR);
     });
   };
+
+
+  const getActiveWalletProviderName = () => {
+
+  // TODO: check why i get 'injected' and if there is a better way of doing this
+   if(window.ethereum?.isMetaMask) return 'MetaMask';
+   const wallets = getWallets(rpcUrls)
+   return Object.keys(wallets).reduce((acc, wallet) => wallets[wallet]?.active ? wallets[wallet]?.name : acc ) ?? '';
+  }
+
+  // const activeprovider = getActiveWalletProviderName();
+  // console.log()
 
   //   get wallets user can switch too, depending on device/browser
   function getOptions() {
@@ -157,11 +153,12 @@ const AccountModal = observer(() => {
     const wallets = getWallets(rpcUrls);
     return Object.keys(wallets).map(key => {
       const option = wallets[key];
+      console.log('option', option);
       //   check for mobile options
       if (isMobile) {
         if (!window.ethereum && option.mobile) {
           return (
-            <Option
+            <WalletProviderButton
               onClick={() => {
                 option.connector !== connector &&
                   !option.href &&
@@ -173,7 +170,6 @@ const AccountModal = observer(() => {
               color={option.color}
               link={option.href}
               header={option.name}
-              subheader={null}
             />
           );
         }
@@ -186,12 +182,11 @@ const AccountModal = observer(() => {
         if (!window.ethereum) {
           if (option.name === 'MetaMask') {
             return (
-              <Option
+              <WalletProviderButton
                 key={key}
                 color={'#E8831D'}
                 icon={option.icon}
                 header={'Install Metamask'}
-                subheader={null}
                 link={'https://metamask.io/'}
               />
             );
@@ -213,7 +208,7 @@ const AccountModal = observer(() => {
       return (
         !isMobile &&
         !option.mobileOnly && (
-          <Option
+          <WalletProviderButton
             onClick={() => {
               option.connector === connector
                 ? setWalletView(WALLET_VIEWS.ACCOUNT)
@@ -225,7 +220,6 @@ const AccountModal = observer(() => {
             icon={option.icon}
             link={option.href}
             header={option.name}
-            subheader={null} //use option.descriptio to bring back multi-line
           />
         )
       );
@@ -273,21 +267,15 @@ const AccountModal = observer(() => {
       return (
         <AccountDetails
           onConnectionChangeClick={() => setWalletView(WALLET_VIEWS.OPTIONS)}
+          providerName={getActiveWalletProviderName()}
         />
       );
     }
+    console.log('walletView', walletView);
     return (
       <UpperSection>
         <ContentWrapper>
           <OptionGrid>{getOptions()}</OptionGrid>
-          {walletView !== WALLET_VIEWS.PENDING && (
-            <Blurb>
-              <span style={{ color: '#90a4ae' }}>New to Ethereum? &nbsp;</span>{' '}
-              <Link href="https://ethereum.org/use/#3-what-is-a-wallet-and-which-one-should-i-use">
-                Learn more about wallets
-              </Link>
-            </Blurb>
-          )}
         </ContentWrapper>
       </UpperSection>
     );
@@ -299,9 +287,10 @@ const AccountModal = observer(() => {
         <HoverText
           onClick={() => {
             setWalletView(WALLET_VIEWS.ACCOUNT);
+            setConnectionErrorMessage(null);
           }}
         >
-          Back
+          <FaArrowLeft/>
         </HoverText>
       ) : walletView === WALLET_VIEWS.ACCOUNT ? (
         'Account'

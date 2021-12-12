@@ -25,10 +25,12 @@ import { FiCopy, FiCheckCircle, FiExternalLink } from 'react-icons/fi';
 
 interface AccountDetailsProps {
   onConnectionChangeClick: () => void;
+  providerName: string;
 }
 
 const AccountDetails: React.FC<AccountDetailsProps> = ({
   onConnectionChangeClick,
+  providerName
 }: AccountDetailsProps): ReactElement => {
   const {
     context: { providerStore, configStore },
@@ -42,7 +44,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({
     <Wrapper>
       <ConnectionWrapper>
         <ConnectionText>
-          <GreenCircle /> Connected to Metamask
+          <GreenCircle /> Connected to {providerName}
         </ConnectionText>
         <ChangeConnection onClick={onConnectionChangeClick}>
           Change
