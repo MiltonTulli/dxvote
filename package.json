@@ -8,10 +8,13 @@
     "build-cache": "dotenv -e .env.development ./scripts/buildCache.sh",
     "upload-config": "yarn dotenv -e .env.development node scripts/uploadConfigFile.ts",
     "dev": "dotenv -e .env.development ./scripts/dev.sh",
-    "lint": "eslint src/",
-    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"scripts/*.{js,jsx,ts,tsx,json,md}\"",
+    "lint": "eslint -c ./.eslintrc",
+    "format": "prettier --write",
+    "format:all": "yarn run format \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"scripts/*.{js,jsx,ts,tsx,json,md}\"",
     "format-check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"scripts/*.{js,jsx,ts,tsx,json,md}\"",
-    "typechain": "typechain --target=ethers-v4 --out-dir src/types/ './src/contracts/*.json'"
+    "typechain": "typechain --target=ethers-v4 --out-dir src/types/ './src/contracts/*.json'",
+    "prepare": "husky install",
+    "pre-commit": "lint-staged"
   },
   "engines": {
     "node": "^14.17.6"
@@ -92,6 +95,8 @@
     "@types/jsonexport": "^3.0.2",
     "hardhat": "^2.2.0",
     "hardhat-dependency-compiler": "^1.1.1",
+    "husky": "^7.0.0",
+    "lint-staged": ">=10",
     "prettier": "2.5.0",
     "typechain": "^6.0.5",
     "web3": "^1.3.5"
@@ -107,5 +112,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,md}": "prettier --write"
   }
 }
